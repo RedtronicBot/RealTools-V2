@@ -8,14 +8,18 @@ export const propertyStat = (
   },
   realtTokenHistory: HistoryResponse[],
 ) => {
-  const summary = realtToken
+  const validTokens = realtToken.filter((t) => t.rentStartDate !== null)
+  const summary = validTokens
     .filter((item) => item.rentStartDate !== null)
     .reduce(
       (acc, loc) => {
         const tokenContract = (loc.gnosisContract?.toLowerCase() || loc.ethereumContract?.toLowerCase()) ?? ""
         const location = gnosisToken.location.find((field) => field.contractAddress === tokenContract)
-        const history = realtTokenHistory.find((h) => h.uuid.toLowerCase() === tokenContract)
-        const lastTokenPrice = [...(history?.history ?? [])].reverse().find((h) => h.values.tokenPrice !== undefined)?.values.tokenPrice ?? 0
+        const history = realtTokenHistory.find((h) => h.uuid.toLowerCase() === tokenContract)?.history
+
+        if (!history?.length) return acc
+
+        const lastTokenPrice = [...history].reverse().find((h) => h.values.tokenPrice !== undefined)?.values.tokenPrice ?? 0
         if (location) {
           acc.tokenCount += location.value
           acc.averagePriceBought += loc.tokenPrice
@@ -36,10 +40,9 @@ export const propertyStat = (
         averageValue: 0,
       },
     )
-  const totalToken = realtToken.filter((item) => item.rentStartDate !== null).length
-  summary.averagePriceBought = summary.averagePriceBought / totalToken
-  summary.averageYearlyRent = summary.averageYearlyRent / totalToken
-  summary.averageValue = summary.averageValue / totalToken
-  summary.properties += totalToken
+  summary.averagePriceBought = summary.averagePriceBought / summary.tokenCount
+  summary.averageYearlyRent = summary.averageYearlyRent / summary.tokenCount
+  summary.averageValue = summary.averageValue / summary.tokenCount
+  summary.properties += validTokens.length
   return summary
 }

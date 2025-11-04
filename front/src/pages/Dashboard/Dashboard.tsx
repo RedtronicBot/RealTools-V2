@@ -1,4 +1,4 @@
-import { LoaderCircle } from "lucide-react"
+import { Info, LoaderCircle } from "lucide-react"
 import { useState } from "react"
 import useDashboardViewModel from "./DashboardViewModel"
 import { formatNumber } from "../../utils/formatNumber"
@@ -9,6 +9,8 @@ import { rentLocation } from "../../utils/rentLocation"
 import RentStatusInfo from "../../components/RentStatusInfo"
 import { summaryStat } from "../../utils/Dashboard/summaryStat"
 import { propertyStat } from "../../utils/Dashboard/propertyStat"
+import { rentStat } from "../../utils/Dashboard/rentStat"
+import { yieldStat } from "../../utils/Dashboard/yieldStat"
 const Dashboard = () => {
   const [value, setValue] = useState("")
   const { sortedOwnedProperties, isLoading, isValidAddress, realtTokenHistory, tokenvalue, realtToken, gnosisToken } = useDashboardViewModel(value)
@@ -18,6 +20,8 @@ const Dashboard = () => {
     gnosisToken ?? { location: [], rmm: [] },
     realtTokenHistory ?? [],
   )
+  const { rentWeekly, rentDaily, rentMonthly, rentYearly } = rentStat(realtToken ?? [], gnosisToken ?? { location: [], rmm: [] })
+  const { yieldActual, yieldFull, yieldInitial, yieldRaw } = yieldStat(realtToken ?? [], realtTokenHistory ?? [])
   if (isLoading)
     return (
       <div className="bg-primary flex min-h-dvh flex-wrap items-center justify-center">
@@ -33,8 +37,9 @@ const Dashboard = () => {
         <input className="rounded-lg border border-white" type="text" onChange={(e) => setValue(e.target.value)} />
         {!isValidAddress && value !== "" && <p className="text-sm text-yellow-400">Adresse invalide</p>}
       </div>
-      <div className="flex flex-wrap gap-4">
-        <div className="bg-secondary w-[350px] rounded-md border border-zinc-500 p-2 text-white">
+      <h1 className="mb-4 text-center text-4xl text-white">Realtools Dashboard</h1>
+      <div className="flex flex-wrap justify-center gap-4">
+        <div className="bg-secondary flex h-[250px] w-[350px] flex-col gap-1.5 rounded-md border border-zinc-500 p-2 text-white">
           <h1 className="text-2xl font-bold">Résumé</h1>
           <div className="flex justify-between">
             <p>Valeur nette</p>
@@ -53,7 +58,7 @@ const Dashboard = () => {
             <p>{formatNumber(rwa, 2)} $</p>
           </div>
         </div>
-        <div className="bg-secondary w-[350px] rounded-md border border-zinc-500 p-2 text-white">
+        <div className="bg-secondary flex h-[250px] w-[350px] flex-col gap-1.5 rounded-md border border-zinc-500 p-2 text-white">
           <h1 className="text-2xl font-bold">Propriétés</h1>
           <div className="flex justify-between">
             <p>Tokens</p>
@@ -65,15 +70,66 @@ const Dashboard = () => {
           </div>
           <div className="flex justify-between">
             <p>Prix d'achat moyen</p>
-            <p>{formatNumber(averagePriceBought, 2)}</p>
+            <p>{formatNumber(averagePriceBought, 2)} $</p>
           </div>
           <div className="flex justify-between">
             <p>Valeur moyenne</p>
-            <p>{formatNumber(averageValue, 2)}</p>
+            <p>{formatNumber(averageValue, 2)} $</p>
           </div>
           <div className="flex justify-between">
             <p>Loyer annuel moyen</p>
-            <p>{formatNumber(averageYearlyRent, 2)}</p>
+            <p>{formatNumber(averageYearlyRent, 2)} $</p>
+          </div>
+          <div className="flex justify-between">
+            <p>Logement loués</p>
+            <p>
+              {rentedUnits}/{totalUnits} {formatNumber((rentedUnits / totalUnits) * 100, 2)} %
+            </p>
+          </div>
+        </div>
+        <div className="bg-secondary flex h-[250px] w-[350px] flex-col gap-1.5 rounded-md border border-zinc-500 p-2 text-white">
+          <h1 className="text-2xl font-bold">Rendement</h1>
+          <div className="flex justify-between">
+            <div className="group relative flex items-center gap-1">
+              <p>Rendement annuel actuel</p>
+              <Info size={24} className="cursor-pointer" />
+              <span className="absolute bottom-full left-1/2 mb-2 w-max max-w-xs -translate-x-1/2 transform rounded bg-gray-700 px-2 py-1 text-xs text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                Prends en compte si le logement est loué
+              </span>
+            </div>
+
+            <p>{formatNumber(yieldActual, 2)} %</p>
+          </div>
+          <div className="flex justify-between">
+            <p>Rendement annuel</p>
+            <p>{formatNumber(yieldRaw, 2)} %</p>
+          </div>
+          <div className="flex justify-between">
+            <p>Rendement 100% loué</p>
+            <p>{formatNumber(yieldFull, 2)} %</p>
+          </div>
+          <div className="flex justify-between">
+            <p>Rendement initial</p>
+            <p>{formatNumber(yieldInitial, 2)} %</p>
+          </div>
+        </div>
+        <div className="bg-secondary flex h-[250px] w-[350px] flex-col gap-1.5 rounded-md border border-zinc-500 p-2 text-white">
+          <h1 className="text-2xl font-bold">Loyers</h1>
+          <div className="flex justify-between">
+            <p>Journaliers</p>
+            <p>{formatNumber(rentDaily, 2)} $</p>
+          </div>
+          <div className="flex justify-between">
+            <p>Hebdomadaires</p>
+            <p>{formatNumber(rentWeekly, 2)} $</p>
+          </div>
+          <div className="flex justify-between">
+            <p>Mensuels</p>
+            <p>{formatNumber(rentMonthly, 2)} $</p>
+          </div>
+          <div className="flex justify-between">
+            <p>Annuels</p>
+            <p>{formatNumber(rentYearly, 2)} $</p>
           </div>
         </div>
       </div>
