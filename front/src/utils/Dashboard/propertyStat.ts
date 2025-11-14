@@ -1,13 +1,6 @@
-import type { HistoryResponse, RealtToken, TokenTransaction } from "../../types"
+import type { GnosisToken, HistoryResponse, RealtToken } from "../../types"
 
-export const propertyStat = (
-  realtToken: RealtToken[],
-  gnosisToken: {
-    location: TokenTransaction[]
-    rmm: TokenTransaction[]
-  },
-  realtTokenHistory: HistoryResponse[],
-) => {
+export const propertyStat = (realtToken: RealtToken[], gnosisToken: GnosisToken, realtTokenHistory: HistoryResponse[]) => {
   const validTokens = realtToken.filter((t) => t.rentStartDate !== null)
   const summary = validTokens
     .filter((item) => item.rentStartDate !== null)

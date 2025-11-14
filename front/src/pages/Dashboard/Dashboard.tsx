@@ -11,8 +11,10 @@ import { summaryStat } from "../../utils/Dashboard/summaryStat"
 import { propertyStat } from "../../utils/Dashboard/propertyStat"
 import { rentStat } from "../../utils/Dashboard/rentStat"
 import { yieldStat } from "../../utils/Dashboard/yieldStat"
+import { rondayStat } from "../../utils/Dashboard/rondayStat"
 const Dashboard = () => {
   const [value, setValue] = useState("")
+  const [rondayProperties, setRondayProperties] = useState<"week" | "month" | "year">("week")
   const { sortedOwnedProperties, isLoading, isValidAddress, realtTokenHistory, tokenvalue, realtToken, gnosisToken } = useDashboardViewModel(value)
   const { netValue, realTokenSummary, rwa, rmm } = summaryStat(realtToken ?? [], gnosisToken ?? { location: [], rmm: [] })
   const { averagePriceBought, averageYearlyRent, properties, rentedUnits, tokenCount, totalUnits, averageValue } = propertyStat(
@@ -22,6 +24,7 @@ const Dashboard = () => {
   )
   const { rentWeekly, rentDaily, rentMonthly, rentYearly } = rentStat(realtToken ?? [], gnosisToken ?? { location: [], rmm: [] })
   const { yieldActual, yieldFull, yieldInitial, yieldRaw } = yieldStat(realtToken ?? [], realtTokenHistory ?? [])
+  const { summary, dateSteps } = rondayStat(realtToken ?? [], gnosisToken ?? { location: [], rmm: [] }, rondayProperties)
   if (isLoading)
     return (
       <div className="bg-primary flex min-h-dvh flex-wrap items-center justify-center">
@@ -38,7 +41,7 @@ const Dashboard = () => {
         {!isValidAddress && value !== "" && <p className="text-sm text-yellow-400">Adresse invalide</p>}
       </div>
       <h1 className="mb-4 text-center text-4xl text-white">Realtools Dashboard</h1>
-      <div className="flex flex-wrap justify-center gap-4">
+      <div className="mb-7 flex flex-wrap justify-center gap-4">
         <div className="bg-secondary flex h-[250px] w-[350px] flex-col gap-1.5 rounded-md border border-zinc-500 p-2 text-white">
           <h1 className="text-2xl font-bold">Résumé</h1>
           <div className="flex justify-between">
@@ -97,19 +100,36 @@ const Dashboard = () => {
                 Prends en compte si le logement est loué
               </span>
             </div>
-
             <p>{formatNumber(yieldActual, 2)} %</p>
           </div>
           <div className="flex justify-between">
-            <p>Rendement annuel</p>
+            <div className="group relative flex items-center gap-1">
+              <p>Rendement annuel</p>
+              <Info size={24} className="cursor-pointer" />
+              <span className="absolute bottom-full left-1/2 mb-2 w-max max-w-xs -translate-x-1/2 transform rounded bg-gray-700 px-2 py-1 text-xs text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                Rendement total sans prendre compte de la date de location
+              </span>
+            </div>
             <p>{formatNumber(yieldRaw, 2)} %</p>
           </div>
           <div className="flex justify-between">
-            <p>Rendement 100% loué</p>
+            <div className="group relative flex items-center gap-1">
+              <p>Rendement 100% loué</p>
+              <Info size={24} className="cursor-pointer" />
+              <span className="absolute bottom-full left-1/2 mb-2 w-max max-w-xs -translate-x-1/2 transform rounded bg-gray-700 px-2 py-1 text-xs text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                Basée sur le dernier rendement du logement complet ou le rendement initial si jamais louée
+              </span>
+            </div>
             <p>{formatNumber(yieldFull, 2)} %</p>
           </div>
           <div className="flex justify-between">
-            <p>Rendement initial</p>
+            <div className="group relative flex items-center gap-1">
+              <p>Rendement initial</p>
+              <Info size={24} className="cursor-pointer" />
+              <span className="absolute bottom-full left-1/2 mb-2 w-max max-w-xs -translate-x-1/2 transform rounded bg-gray-700 px-2 py-1 text-xs text-white opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+                Rendement donné par RealT
+              </span>
+            </div>
             <p>{formatNumber(yieldInitial, 2)} %</p>
           </div>
         </div>
@@ -130,6 +150,40 @@ const Dashboard = () => {
           <div className="flex justify-between">
             <p>Annuels</p>
             <p>{formatNumber(rentYearly, 2)} $</p>
+          </div>
+        </div>
+        <div className="bg-secondary flex h-[250px] w-[350px] flex-col gap-1.5 rounded-md border border-zinc-500 p-2 text-white">
+          <div className="flex w-full justify-between">
+            <h1 className="text-2xl font-bold">Prochain Loyers</h1>
+            <select
+              onChange={(e) => setRondayProperties(e.target.value as "week" | "month" | "year")}
+              defaultValue="week"
+              className="bg-tertiary rounded-lg border border-zinc-500 pl-2 text-lg font-bold"
+            >
+              <option value="week">Semaine</option>
+              <option value="month">Mois</option>
+              <option value="year">Année</option>
+            </select>
+          </div>
+          <div className="flex justify-between">
+            <p>{dateSteps[0]}</p>
+            <p>{formatNumber(summary.firstRonday, 2)} $</p>
+          </div>
+          <div className="flex justify-between">
+            <p>{dateSteps[1]}</p>
+            <p>{formatNumber(summary.secondRonday, 2)} $</p>
+          </div>
+          <div className="flex justify-between">
+            <p>{dateSteps[2]}</p>
+            <p>{formatNumber(summary.thirdRonday, 2)} $</p>
+          </div>
+          <div className="flex justify-between">
+            <p>{dateSteps[3]}</p>
+            <p>{formatNumber(summary.fourthRonday, 2)} $</p>
+          </div>
+          <div className="flex justify-between">
+            <p>{dateSteps[4]}</p>
+            <p>{formatNumber(summary.fifthRonday, 2)} $</p>
           </div>
         </div>
       </div>

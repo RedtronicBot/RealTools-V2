@@ -156,3 +156,8 @@ export type HistoryResponse = {
     }
   }[]
 }
+
+export type GnosisToken = {
+  location: TokenTransaction[]
+  rmm: TokenTransaction[]
+}

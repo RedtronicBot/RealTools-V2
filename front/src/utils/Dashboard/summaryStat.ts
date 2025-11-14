@@ -1,12 +1,6 @@
-import type { RealtToken, TokenTransaction } from "../../types"
+import type { GnosisToken, RealtToken } from "../../types"
 
-export const summaryStat = (
-  realtToken: RealtToken[],
-  gnosisToken: {
-    location: TokenTransaction[]
-    rmm: TokenTransaction[]
-  },
-) => {
+export const summaryStat = (realtToken: RealtToken[], gnosisToken: GnosisToken) => {
   const rwaValue =
     gnosisToken.location.find((field) => field.contractAddress.toLowerCase() === "0x0675e8f4a52ea6c845cb6427af03616a2af42170")?.value ?? 0
   const rwaPrice = realtToken.find((field) => field.rentStartDate === null)?.tokenPrice ?? 0
