@@ -12,10 +12,26 @@ import { propertyStat } from "../../utils/Dashboard/propertyStat"
 import { rentStat } from "../../utils/Dashboard/rentStat"
 import { yieldStat } from "../../utils/Dashboard/yieldStat"
 import { rondayStat } from "../../utils/Dashboard/rondayStat"
+import FilterOption from "../../components/Dashboard/FilterOption"
 const Dashboard = () => {
+  const initialFilters = {
+    category: "",
+    searchName: "",
+    rentStarted: null as boolean | null,
+    minValue: 0,
+    maxValue: 150,
+    propertyType: "",
+  }
   const [value, setValue] = useState("")
   const [rondayProperties, setRondayProperties] = useState<"week" | "month" | "year">("week")
-  const { sortedOwnedProperties, isLoading, isValidAddress, realtTokenHistory, tokenvalue, realtToken, gnosisToken } = useDashboardViewModel(value)
+  const [category, setCategory] = useState(initialFilters.category)
+  const [searchName, setSearchName] = useState(initialFilters.searchName)
+  const [rentStarted, setRentStarted] = useState<boolean | null>(initialFilters.rentStarted)
+  const [minValue, setMinValue] = useState(initialFilters.minValue)
+  const [maxValue, setMaxValue] = useState(initialFilters.maxValue)
+  const [propertyType, setPropertyType] = useState(initialFilters.propertyType)
+  const { sortedOwnedProperties, isLoading, isValidAddress, realtTokenHistory, tokenvalue, realtToken, gnosisToken, propertyTypeNameSet } =
+    useDashboardViewModel(value, searchName, category, rentStarted, minValue, maxValue, propertyType)
   const { netValue, realTokenSummary, rwa, rmm } = summaryStat(realtToken ?? [], gnosisToken ?? { location: [], rmm: [] })
   const { averagePriceBought, averageYearlyRent, properties, rentedUnits, tokenCount, totalUnits, averageValue } = propertyStat(
     realtToken ?? [],
@@ -25,6 +41,15 @@ const Dashboard = () => {
   const { rentWeekly, rentDaily, rentMonthly, rentYearly } = rentStat(realtToken ?? [], gnosisToken ?? { location: [], rmm: [] })
   const { yieldActual, yieldFull, yieldInitial, yieldRaw } = yieldStat(realtToken ?? [], realtTokenHistory ?? [])
   const { summary, dateSteps } = rondayStat(realtToken ?? [], gnosisToken ?? { location: [], rmm: [] }, rondayProperties)
+
+  const resetFilters = () => {
+    setCategory(initialFilters.category)
+    setSearchName(initialFilters.searchName)
+    setRentStarted(initialFilters.rentStarted)
+    setMinValue(initialFilters.minValue)
+    setMaxValue(initialFilters.maxValue)
+    setPropertyType(initialFilters.propertyType)
+  }
   if (isLoading)
     return (
       <div className="bg-primary flex min-h-dvh flex-wrap items-center justify-center">
@@ -86,7 +111,7 @@ const Dashboard = () => {
           <div className="flex justify-between">
             <p>Logement loués</p>
             <p>
-              {rentedUnits}/{totalUnits} {formatNumber((rentedUnits / totalUnits) * 100, 2)} %
+              {rentedUnits}/{totalUnits} ({formatNumber((rentedUnits / totalUnits) * 100, 2)} %)
             </p>
           </div>
         </div>
@@ -187,6 +212,21 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+      <FilterOption
+        category={category}
+        setCategory={setCategory}
+        setSearchName={setSearchName}
+        setRentStarted={setRentStarted}
+        rentStarted={rentStarted}
+        maxValue={maxValue}
+        minValue={minValue}
+        setMaxValue={setMaxValue}
+        setMinValue={setMinValue}
+        setPropertyType={setPropertyType}
+        propertyTypeNameSet={propertyTypeNameSet}
+        resetFilters={resetFilters}
+        propertyType={propertyType}
+      />
       <div className="flex w-full flex-wrap justify-center gap-5">
         {sortedOwnedProperties?.map((tokens, index) => {
           const tokenContract = (tokens.ethereumContract || tokens.gnosisContract) ?? ""
