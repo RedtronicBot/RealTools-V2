@@ -13,6 +13,7 @@ import { rentStat } from "../../utils/Dashboard/rentStat"
 import { yieldStat } from "../../utils/Dashboard/yieldStat"
 import { rondayStat } from "../../utils/Dashboard/rondayStat"
 import FilterOption from "../../components/Dashboard/FilterOption"
+import { useTokenStore } from "../../store/TokenStore"
 const Dashboard = () => {
   const initialFilters = {
     category: "",
@@ -22,7 +23,7 @@ const Dashboard = () => {
     maxValue: 150,
     propertyType: "",
   }
-  const [value, setValue] = useState("")
+  const { token, setToken } = useTokenStore()
   const [rondayProperties, setRondayProperties] = useState<"week" | "month" | "year">("week")
   const [category, setCategory] = useState(initialFilters.category)
   const [searchName, setSearchName] = useState(initialFilters.searchName)
@@ -31,7 +32,7 @@ const Dashboard = () => {
   const [maxValue, setMaxValue] = useState(initialFilters.maxValue)
   const [propertyType, setPropertyType] = useState(initialFilters.propertyType)
   const { sortedOwnedProperties, isLoading, isValidAddress, realtTokenHistory, tokenvalue, realtToken, gnosisToken, propertyTypeNameSet } =
-    useDashboardViewModel(value, searchName, category, rentStarted, minValue, maxValue, propertyType)
+    useDashboardViewModel(token, searchName, category, rentStarted, minValue, maxValue, propertyType)
   const { netValue, realTokenSummary, rwa, rmm } = summaryStat(realtToken ?? [], gnosisToken ?? { location: [], rmm: [] })
   const { averagePriceBought, averageYearlyRent, properties, rentedUnits, tokenCount, totalUnits, averageValue } = propertyStat(
     realtToken ?? [],
@@ -62,8 +63,8 @@ const Dashboard = () => {
   return (
     <div className="bg-primary flex min-h-dvh flex-col p-5">
       <div className="absolute top-5 right-5">
-        <input className="rounded-lg border border-white" type="text" onChange={(e) => setValue(e.target.value)} />
-        {!isValidAddress && value !== "" && <p className="text-sm text-yellow-400">Adresse invalide</p>}
+        <input className="rounded-lg border border-white" type="text" onChange={(e) => setToken(e.target.value)} />
+        {!isValidAddress && token !== "" && <p className="text-sm text-yellow-400">Adresse invalide</p>}
       </div>
       <h1 className="mb-4 text-center text-4xl text-white">Realtools Dashboard</h1>
       <div className="mb-7 flex flex-wrap justify-center gap-4">

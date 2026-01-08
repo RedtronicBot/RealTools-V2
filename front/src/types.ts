@@ -88,7 +88,7 @@ export type RealtToken = {
   netRentMonthPerToken: number
   netRentYearPerToken: number
   annualPercentageYield: number
-  coordinate: { lat: number; lng: number }
+  coordinate: { lat: string; lng: string }
   marketplaceLink: string
   imageLink: string[]
   propertyType: number | null

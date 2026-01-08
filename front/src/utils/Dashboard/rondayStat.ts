@@ -87,13 +87,21 @@ export const rondayStat = (realtToken: RealtToken[], gnosisToken: GnosisToken, m
     fifthRonday: 0,
   }
 
+  const locationValueByContract = gnosisToken.location.reduce(
+    (acc, loc) => {
+      acc[loc.contractAddress] = (acc[loc.contractAddress] ?? 0) + loc.value
+      return acc
+    },
+    {} as Record<string, number>,
+  )
+
   // 3️⃣ Boucle sur chaque bien
   for (const loc of realtToken) {
     if (!loc.rentStartDate) continue
 
     const rentDate = new Date(loc.rentStartDate.date.replace(" ", "T"))
     const tokenContract = (loc.gnosisContract?.toLowerCase() || loc.ethereumContract?.toLowerCase()) ?? ""
-    const value = gnosisToken.location.find((field) => field.contractAddress === tokenContract)?.value ?? 0
+    const value = locationValueByContract[tokenContract] ?? 0
     const rentValue = loc.netRentYearPerToken * value
 
     // 4️⃣ Boucle sur chaque palier et cumul si le bien est actif
