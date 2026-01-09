@@ -1,6 +1,5 @@
 import { Info, LoaderCircle } from "lucide-react"
 import { useState } from "react"
-import useDashboardViewModel from "./DashboardViewModel"
 import { formatNumber } from "../../utils/formatNumber"
 import { formatDate } from "../../utils/formatDate"
 import { locationRent } from "../../utils/locationRent"
@@ -14,25 +13,15 @@ import { yieldStat } from "../../utils/Dashboard/yieldStat"
 import { rondayStat } from "../../utils/Dashboard/rondayStat"
 import FilterOption from "../../components/Dashboard/FilterOption"
 import { useTokenStore } from "../../store/TokenStore"
+import { useRealtFilters } from "../../hooks/useRealtFilters"
+import { useRealtData } from "../../hooks/useRealtData"
+import { useDashboardViewModel } from "./DashboardViewModel"
 const Dashboard = () => {
-  const initialFilters = {
-    category: "",
-    searchName: "",
-    rentStarted: null as boolean | null,
-    minValue: 0,
-    maxValue: 150,
-    propertyType: "",
-  }
   const { token, setToken } = useTokenStore()
   const [rondayProperties, setRondayProperties] = useState<"week" | "month" | "year">("week")
-  const [category, setCategory] = useState(initialFilters.category)
-  const [searchName, setSearchName] = useState(initialFilters.searchName)
-  const [rentStarted, setRentStarted] = useState<boolean | null>(initialFilters.rentStarted)
-  const [minValue, setMinValue] = useState(initialFilters.minValue)
-  const [maxValue, setMaxValue] = useState(initialFilters.maxValue)
-  const [propertyType, setPropertyType] = useState(initialFilters.propertyType)
-  const { sortedOwnedProperties, isLoading, isValidAddress, realtTokenHistory, tokenvalue, realtToken, gnosisToken, propertyTypeNameSet } =
-    useDashboardViewModel(token, searchName, category, rentStarted, minValue, maxValue, propertyType)
+  const { filters, resetFilters, updateFilter } = useRealtFilters()
+  const { gnosisToken, realtToken, isLoading, isValidAddress, realtTokenHistory } = useRealtData(token)
+  const { filteredProperties, tokenvalue } = useDashboardViewModel(realtToken, gnosisToken, filters)
   const { netValue, realTokenSummary, rwa, rmm } = summaryStat(realtToken ?? [], gnosisToken ?? { location: [], rmm: [] })
   const { averagePriceBought, averageYearlyRent, properties, rentedUnits, tokenCount, totalUnits, averageValue } = propertyStat(
     realtToken ?? [],
@@ -43,14 +32,6 @@ const Dashboard = () => {
   const { yieldActual, yieldFull, yieldInitial, yieldRaw } = yieldStat(realtToken ?? [], realtTokenHistory ?? [])
   const { summary, dateSteps } = rondayStat(realtToken ?? [], gnosisToken ?? { location: [], rmm: [] }, rondayProperties)
 
-  const resetFilters = () => {
-    setCategory(initialFilters.category)
-    setSearchName(initialFilters.searchName)
-    setRentStarted(initialFilters.rentStarted)
-    setMinValue(initialFilters.minValue)
-    setMaxValue(initialFilters.maxValue)
-    setPropertyType(initialFilters.propertyType)
-  }
   if (isLoading)
     return (
       <div className="bg-primary flex min-h-dvh flex-wrap items-center justify-center">
@@ -213,23 +194,9 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
-      <FilterOption
-        category={category}
-        setCategory={setCategory}
-        setSearchName={setSearchName}
-        setRentStarted={setRentStarted}
-        rentStarted={rentStarted}
-        maxValue={maxValue}
-        minValue={minValue}
-        setMaxValue={setMaxValue}
-        setMinValue={setMinValue}
-        setPropertyType={setPropertyType}
-        propertyTypeNameSet={propertyTypeNameSet}
-        resetFilters={resetFilters}
-        propertyType={propertyType}
-      />
+      <FilterOption filters={filters} resetFilters={resetFilters} updateFilter={updateFilter} />
       <div className="flex w-full flex-wrap justify-center gap-5">
-        {sortedOwnedProperties?.map((tokens, index) => {
+        {filteredProperties?.map((tokens, index) => {
           const tokenContract = (tokens.ethereumContract || tokens.gnosisContract) ?? ""
           return (
             <div key={index} className="bg-secondary w-fit rounded-md border border-zinc-500 text-white">

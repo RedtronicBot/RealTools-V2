@@ -1,37 +1,16 @@
 import { Filter, RefreshCcw } from "lucide-react"
-import { useState, type Dispatch, type SetStateAction } from "react"
+import { useState } from "react"
+import type { RealtFilters } from "../../hooks/useRealtFilters"
 
 type FilterOptionProps = {
-  category: string
-  setCategory: (value: string) => void
-  setSearchName: (value: string) => void
-  rentStarted: null | boolean
-  setRentStarted: Dispatch<SetStateAction<boolean | null>>
-  minValue: number
-  maxValue: number
-  setMinValue: (value: number) => void
-  setMaxValue: (value: number) => void
-  setPropertyType: (value: string) => void
-  propertyTypeNameSet: string[] | null
+  filters: RealtFilters
+  updateFilter: <K extends keyof RealtFilters>(key: K, value: RealtFilters[K]) => void
   resetFilters: () => void
-  propertyType: string
+  propertyTypeNameSet?: string[]
 }
-const FilterOption = ({
-  category,
-  setCategory,
-  setSearchName,
-  setRentStarted,
-  rentStarted,
-  minValue,
-  maxValue,
-  setMinValue,
-  setMaxValue,
-  setPropertyType,
-  propertyTypeNameSet,
-  propertyType,
-  resetFilters,
-}: FilterOptionProps) => {
+const FilterOption = ({ filters, updateFilter, resetFilters, propertyTypeNameSet }: FilterOptionProps) => {
   const [open, setOpen] = useState(false)
+
   const MIN = 0
   const MAX = 150
   const STEP = 5
@@ -39,7 +18,7 @@ const FilterOption = ({
   return (
     <div className="flex gap-4 px-2 py-7">
       <input
-        onChange={(e) => setSearchName(e.target.value)}
+        onChange={(e) => updateFilter("searchName", e.target.value)}
         className="bg-secondary h-10 rounded-lg border border-zinc-500 pl-2 text-lg text-white"
       />
       <div className="relative flex">
@@ -62,10 +41,10 @@ const FilterOption = ({
                 <label key={value.name} className="flex flex-col-reverse">
                   <input
                     type="radio"
-                    name="option"
+                    name="category"
                     value={value.name}
-                    checked={category === value.name}
-                    onChange={(e) => setCategory(e.target.value)}
+                    checked={filters.category === value.name}
+                    onChange={(e) => updateFilter("category", e.target.value as RealtFilters["category"])}
                   />
                   {value.desc}
                 </label>
@@ -75,7 +54,7 @@ const FilterOption = ({
             <h2 className="text-lg font-bold">Rendement</h2>
             <div className="flex flex-col items-center">
               <p>
-                {minValue / 10}% - {maxValue / 10}%
+                {filters.minValue / 10}% - {filters.maxValue / 10}%
               </p>
               <div className="relative h-6 w-[240px]">
                 {/* Track */}
@@ -85,8 +64,8 @@ const FilterOption = ({
                 <div
                   className="absolute top-1/2 h-1 -translate-y-1/2 rounded bg-white"
                   style={{
-                    left: `${(minValue / MAX) * 100}%`,
-                    right: `${100 - (maxValue / MAX) * 100}%`,
+                    left: `${(filters.minValue / MAX) * 100}%`,
+                    right: `${100 - (filters.maxValue / MAX) * 100}%`,
                   }}
                 />
 
@@ -96,10 +75,9 @@ const FilterOption = ({
                   min={MIN}
                   max={MAX}
                   step={STEP}
-                  value={minValue}
-                  onChange={(e) => setMinValue(Math.min(+e.target.value, maxValue - STEP))}
+                  value={filters.minValue}
+                  onChange={(e) => updateFilter("minValue", Math.min(+e.target.value, filters.maxValue - STEP))}
                   className="pointer-events-none absolute w-full appearance-none bg-transparent [&::-moz-range-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:pointer-events-auto"
-                  style={{ zIndex: minValue > MAX - (MAX - MIN) / 2 ? 5 : 3 }}
                 />
 
                 {/* Slider max */}
@@ -108,37 +86,31 @@ const FilterOption = ({
                   min={MIN}
                   max={MAX}
                   step={STEP}
-                  value={maxValue}
-                  onChange={(e) => setMaxValue(Math.max(+e.target.value, minValue + STEP))}
+                  value={filters.maxValue}
+                  onChange={(e) => updateFilter("maxValue", Math.max(+e.target.value, filters.minValue + STEP))}
                   className="pointer-events-none absolute w-full appearance-none bg-transparent [&::-moz-range-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:pointer-events-auto"
-                  style={{ zIndex: maxValue < (MAX - MIN) / 2 ? 5 : 4 }}
                 />
               </div>
             </div>
             <h2 className="text-lg font-bold">Mise en location</h2>
-            <div className="flex items-center gap-2">
-              <p>Entamé</p>
+            <div
+              className="flex h-[20px] w-[40px] items-center justify-center rounded-2xl border border-white"
+              onClick={() => {
+                const next = filters.rentStarted === null ? true : !filters.rentStarted
+
+                updateFilter("rentStarted", next)
+              }}
+            >
               <div
-                className={`flex h-[20px] w-[40px] items-center justify-center rounded-2xl border border-white`}
-                onClick={() =>
-                  setRentStarted((prev) => {
-                    if (prev === null) return true
-                    return !prev
-                  })
-                }
-              >
-                <div
-                  className={`h-[14px] w-[14px] rounded-full border border-white transition-all duration-500 ease-in-out ${
-                    rentStarted === true ? "-translate-x-2" : rentStarted === false ? "translate-x-2" : ""
-                  } `}
-                ></div>
-              </div>
-              <p>Non entamé</p>
+                className={`h-[14px] w-[14px] rounded-full border border-white transition-all duration-500 ease-in-out ${
+                  filters.rentStarted === true ? "-translate-x-2" : filters.rentStarted === false ? "translate-x-2" : ""
+                }`}
+              />
             </div>
             <h2 className="text-lg font-bold">Type de propriété</h2>
             <select
-              value={propertyType || "reset"}
-              onChange={(e) => setPropertyType(e.target.value)}
+              value={filters.propertyType || "reset"}
+              onChange={(e) => updateFilter("propertyType", e.target.value === "reset" ? "" : e.target.value)}
               className="bg-tertiary rounded-lg border border-zinc-500 p-2 text-lg font-bold"
             >
               <option hidden value="reset">

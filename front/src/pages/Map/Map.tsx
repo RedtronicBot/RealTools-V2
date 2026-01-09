@@ -3,17 +3,20 @@ import "leaflet.markercluster/dist/MarkerCluster.css"
 import "leaflet.markercluster/dist/MarkerCluster.Default.css"
 import "leaflet/dist/leaflet.css"
 import { LoaderCircle } from "lucide-react"
+import { useState } from "react"
 import { MapContainer, Marker, TileLayer } from "react-leaflet"
 import MarkerClusterGroup from "react-leaflet-cluster"
-import "./leaflet-icon"
-import useMapViewModel from "./MapViewModel"
-import { getPropertyIcon } from "./mapIcons"
-import { useState } from "react"
+import { useRealtData } from "../../hooks/useRealtData"
+import { useTokenStore } from "../../store/TokenStore"
 import type { RealtToken } from "../../types"
+import "./leaflet-icon"
 import LocationPanel from "./LocationPanel"
+import { getPropertyIcon } from "./mapIcons"
+
 const position: LatLngTuple = [18.808779, -52.150144]
 const LeafletMap = () => {
-  const { realtToken, isLoading, gnosisToken } = useMapViewModel("0xf71ac0a975b66B90b9D21Da72498Da748A4d46a3")
+  const { token } = useTokenStore()
+  const { gnosisToken, realtToken, isLoading } = useRealtData(token)
   const [selectedLocation, setSelectedLocation] = useState<RealtToken | null>(null)
   const addressToDate = new Map(
     gnosisToken?.location?.filter((g) => g?.contractAddress && g?.date).map((g) => [g.contractAddress.toLowerCase(), new Date(g.date)]),
